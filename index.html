@@ -1,0 +1,679 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FS Aero Composites Estimator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- Minautor Branding & Global Styles --- */
+        :root {
+            --minautor-primary: #8B6D4C; /* Muted Bronze/Brown */
+            --minautor-dark: #1a1a1a;
+            --background-light: #808080;
+            --border-gray: #949cac;
+            --text-gray: #6b7280;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-light);
+            padding: 16px; /* p-4 */
+        }
+        
+        .container {
+            max-width: 1200px; /* max-w-6xl equivalent */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* --- Card & Shadow Styles --- */
+        .card {
+            background-color: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 0 10px -5px rgba(0, 0, 0, 0.04);
+            margin-bottom: 32px;
+        }
+        
+        .config-card {
+            border-top: 4px solid var(--minautor-primary);
+        }
+        
+        .input-card {
+            border: 2px dashed var(--minautor-primary);
+        }
+
+        /* --- Header --- */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .logo {
+            margin: 0 auto 16px;
+            width: 100%;
+            max-width: 384px; /* max-w-sm */
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 800; /* extabold */
+            color: var(--minautor-dark);
+            text-transform: uppercase;
+        }
+        .header p {
+            font-size: 18px;
+            color: var(--text-gray);
+            margin-top: 4px;
+        }
+
+        /* --- Forms & Inputs --- */
+        .form-section h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--minautor-dark);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-gray);
+        }
+        
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 16px;
+        }
+        @media (min-width: 640px) { /* sm breakpoint */
+            .grid-layout {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        @media (min-width: 1024px) { /* lg breakpoint */
+            .grid-layout {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+            .col-span-4 {
+                grid-column: span 4 / span 4;
+            }
+            .col-span-2 {
+                grid-column: span 2 / span 2;
+            }
+        }
+        
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-gray);
+            margin-bottom: 4px;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-gray);
+            border-radius: 8px;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        input:focus, select:focus {
+            outline: 2px solid var(--minautor-primary);
+            outline-offset: 1px;
+            border-color: var(--minautor-primary);
+        }
+        
+        .input-with-unit {
+            position: relative;
+        }
+        .input-with-unit span {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-gray);
+            font-size: 14px;
+            pointer-events: none;
+        }
+        
+        /* Specific Fix for area/length inputs due to absolute positioning */
+        #compArea + span, #tubeLength + span, #ribLength + span {
+            top: calc(50% + 8px); /* Adjust to align with input when in wrapper */
+        }
+
+        /* --- Buttons --- */
+        .btn-primary {
+            width: 100%;
+            background-color: var(--minautor-primary);
+            color: white;
+            font-weight: 700;
+            padding: 12px 16px;
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: var(--minautor-dark);
+        }
+
+        .btn-secondary {
+            background-color: #f3f4f6; /* gray-100 */
+            color: var(--minautor-dark);
+            font-weight: 600;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-gray);
+            transition: background-color 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background-color: #e5e7eb; /* gray-200 */
+        }
+        
+        .remove-btn {
+            color: #ef4444; /* red-500 */
+            transition: color 0.15s ease;
+            font-size: 18px;
+            line-height: 1;
+        }
+        .remove-btn:hover {
+            color: #b91c1c; /* red-700 */
+        }
+
+        /* --- Results Table --- */
+        .component-list-container {
+            max-height: 384px;
+            overflow-y: auto;
+            margin-bottom: 24px;
+        }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .results-table thead {
+            background-color: #f9fafb;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .results-table th, .results-table td {
+            padding: 12px;
+            text-align: left;
+            white-space: nowrap;
+            border-bottom: 1px solid var(--border-gray);
+        }
+        .results-table th {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .results-table td {
+            font-size: 14px;
+            color: #1f2937;
+        }
+        .results-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        .text-right { text-align: right; }
+        .text-blue { color: #2563eb; } /* blue-600 */
+        .text-minautor-primary { color: var(--minautor-primary); }
+
+        /* --- Totals Panel --- */
+        #totalsPanel {
+            padding: 16px;
+            background-color: #f3f4f6;
+            border-radius: 8px;
+        }
+        #totalsPanel > div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 600;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        #totalsPanel > div:last-of-type {
+            font-size: 24px;
+            font-weight: 800;
+            padding-top: 8px;
+            border-bottom: none;
+        }
+        
+        /* Mobile layout adjustments for config panel */
+        .flex-row-md {
+            display: flex;
+            flex-direction: column;
+        }
+        @media (min-width: 768px) { /* md breakpoint */
+            .flex-row-md {
+                flex-direction: row;
+                gap: 32px; /* space-x-8 */
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <!-- Logo Integration (Placeholder for image_b106da.png) -->
+            <img src="logo.png" alt="Minautor Racing Team Logo" class="logo">
+            
+            <h1 class="uppercase">AERO COMPOSITES ESTIMATOR</h1>
+            <p>Material Costing and Resin Calculation Utility</p>
+        </header>
+
+        <!-- Configuration and Input Panel -->
+        <div class="card config-card form-section">
+            <h2 class="text-2xl font-semibold text-minautor-dark mb-4 border-b pb-2">1. Project Configuration</h2>
+
+            <div class="flex-row-md">
+                <!-- Process Selection -->
+                <div style="flex: 1; margin-bottom: 16px;">
+                    <label for="processType">Manufacturing Process:</label>
+                    <select id="processType" onchange="updateVfNote()">
+                        <option value="vacuum">Vacuum Bagging (High Vf, Structural)</option>
+                        <option value="hand">Hand Lay-up (Lower Vf, Bodywork)</option>
+                    </select>
+                    <p id="vf-note" class="text-minautor-primary" style="font-size: 14px; margin-top: 8px; font-style: italic;">Target Fibre Volume Fraction (Vf) is set for Epoxy/High Efficiency.</p>
+                </div>
+                
+                <!-- Waste Percentage Input -->
+                <div style="flex: 1;">
+                    <label for="wasteFactor">Composite Waste Allowance (%):</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="wasteFactor" value="15" min="0" max="100" />
+                        <span>%</span>
+                    </div>
+                    <p style="font-size: 14px; color: var(--text-gray); margin-top: 8px;">Waste applies only to the sheet composite fabric area.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Component Input Form -->
+        <div id="newComponentCard" class="card input-card form-section">
+            <h2>2. Add New Component</h2>
+            
+            <div class="grid-layout">
+                <input type="text" id="compName" placeholder="Component Name (e.g., Front Wing Main Plane)" class="col-span-4" />
+                
+                <!-- Column 1: Composite -->
+                <div>
+                    <label for="fibreType">Fibre Material & Weave:</label>
+                    <select id="fibreType">
+                        <option value="" disabled selected>Select Fibre...</option>
+                        <optgroup label="Carbon Fiber (High Performance)">
+                            <option value="CF_TWILL_200">Carbon 200 gsm (2x2 Twill) - €25/m²</option>
+                            <option value="CF_UD_300">Carbon 300 gsm (Unidirectional) - €30/m²</option>
+                        </optgroup>
+                        <optgroup label="Fiberglass (Cost Effective)">
+                            <option value="GF_WOVEN_200">Fiberglass 200 gsm (Woven) - €4.00/m²</option>
+                            <option value="GF_MAT_450">Fiberglass 450 gsm (CSM) - €4.50/m²</option>
+                        </optgroup>
+                        <optgroup label="Kevlar (Impact Resistance)">
+                            <option value="KV_WOVEN_170">Kevlar 170 gsm (Woven) - €35/m²</option>
+                        </optgroup>
+                    </select>
+                </div>
+                
+                <!-- Column 2: Resin -->
+                <div>
+                    <label for="resinType">Resin System:</label>
+                    <select id="resinType">
+                        <option value="" disabled selected>Select Resin...</option>
+                        <option value="EPOXY">Epoxy (€18/kg)</option>
+                        <option value="VINYLESTER">Vinylester (€9/kg)</option>
+                        <option value="POLYESTER">Polyester (€5/kg)</option>
+                    </select>
+                </div>
+                
+                <!-- Column 3: Area -->
+                <div class="input-with-unit">
+                    <label for="compArea">Component Area (Area Required):</label>
+                    <input type="number" id="compArea" placeholder="Area" min="0.01" step="0.01" />
+                    <span>m²</span>
+                </div>
+                
+                <!-- Column 4: Plies -->
+                <div>
+                    <label for="numPlies">Number of Plies:</label>
+                    <input type="number" id="numPlies" placeholder="Plies" min="1" step="1" />
+                </div>
+                
+                <!-- Structural Support Row -->
+                <h3 class="col-span-4" style="font-size: 18px; font-weight: 600; color: var(--minautor-dark); margin-top: 16px; margin-bottom: 8px;">Internal Support Structure (Optional)</h3>
+
+                <!-- Carbon Tubes -->
+                <div class="input-with-unit col-span-2">
+                    <label for="tubeLength">Carbon Tube Length (e.g., for spars):</label>
+                    <input type="number" id="tubeLength" value="0" min="0" step="0.01" />
+                    <span>m (€35.00/m)</span>
+                </div>
+                
+                <!-- Aluminum Ribs -->
+                <div class="input-with-unit col-span-2">
+                    <label for="ribLength">Aluminum Rib Length (e.g., D-Box support):</label>
+                    <input type="number" id="ribLength" value="0" min="0" step="0.01" />
+                    <span>m (€8.00/m)</span>
+                </div>
+
+                <div class="col-span-4" style="margin-top: 16px;">
+                    <button onclick="addComponent()" class="btn-primary">
+                        Calculate & Add Component
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="card form-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-gray);">
+                <h2 style="font-size: 24px; font-weight: 600; color: var(--minautor-dark); margin: 0;">3. Component List & Totals</h2>
+                <button onclick="exportToCSV()" class="btn-secondary" style="font-size: 14px;">
+                    Export Data (CSV)
+                </button>
+            </div>
+            
+            <div class="component-list-container">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Component</th>
+                            <th style="width: 20%;">Reinforcement</th>
+                            <th style="width: 15%;" class="text-right">Total Area (m²)</th>
+                            <th style="width: 12%;" class="text-right text-blue">Resin (L)</th>
+                            <th style="width: 10%;" class="text-right">Structure (€)</th>
+                            <th style="width: 10%;" class="text-right">Composite (€)</th>
+                            <th style="width: 8%;" class="text-right">Total Cost (€)</th>
+                            <th style="width: 4%;" class="text-right"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="componentList">
+                        <!-- Component rows will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Totals Area -->
+            <div id="totalsPanel">
+                <div class="text-gray">
+                    <span>Total Area (All Components)</span>
+                    <span id="totalArea">0.00 m²</span>
+                </div>
+                <div class="text-blue">
+                    <span>Total Resin Needed (Litres)</span>
+                    <span id="totalResin">0.00 Litres</span>
+                </div>
+                <div class="text-gray">
+                    <span>Total Structural Support Cost</span>
+                    <span id="totalStructuralCost">€0.00</span>
+                </div>
+                <div class="text-minautor-primary" style="margin-top: 16px; padding-top: 8px;">
+                    <span>GRAND TOTAL PROJECT ESTIMATE:</span>
+                    <span id="grandTotal">€0.00</span>
+                </div>
+                <p id="error-message" style="color: #ef4444; margin-top: 16px; display: none;"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Material Database ---
+        const FIBRE_DATA = {
+            'CF_TWILL_200': { mat: 'Carbon Fiber', weave: '2x2 Twill (200gsm)', Wa: 200, Pmat: 25.00, rho_fibre: 1800, Wstd: 1.00 },
+            'CF_UD_300': { mat: 'Carbon Fiber', weave: 'UD (300gsm)', Wa: 300, Pmat: 30.00, rho_fibre: 1800, Wstd: 0.30 },
+            'GF_WOVEN_200': { mat: 'Fiberglass', weave: 'Woven (200gsm)', Wa: 200, Pmat: 4.00, rho_fibre: 2550, Wstd: 1.25 },
+            'GF_MAT_450': { mat: 'Fiberglass', weave: 'CSM (450gsm)', Wa: 450, Pmat: 4.50, rho_fibre: 2550, Wstd: 1.00 },
+            'KV_WOVEN_170': { mat: 'Kevlar', weave: 'Woven (170gsm)', Wa: 170, Pmat: 35.00, rho_fibre: 1440, Wstd: 1.00 },
+        };
+
+        const RESIN_DATA = {
+            'EPOXY': { name: 'Epoxy', P_resin: 18.00, rho_res: 1150, Vf_vac: 0.55, Vf_hand: 0.45 },
+            'VINYLESTER': { name: 'Vinylester', P_resin: 9.00, rho_res: 1050, Vf_vac: 0.45, Vf_hand: 0.45 },
+            'POLYESTER': { name: 'Polyester', P_resin: 5.00, rho_res: 1050, Vf_vac: 0.40, Vf_hand: 0.40 },
+        };
+        
+        // --- Structural Material Pricing (Per Linear Meter) ---
+        const STRUCTURAL_PRICING = {
+            'TUBE_CF': 35.00, // Carbon Tube 20mm OD, per meter
+            'RIB_AL': 8.00     // Aluminum Rib Stock (sheet/extrusion), per meter
+        };
+
+        let components = [];
+
+        // Function to update the Vf note based on process selection
+        function updateVfNote() {
+            const process = document.getElementById('processType').value;
+            const vfNote = document.getElementById('vf-note');
+            // Vf for Vacuum is 'good' (Minautor Primary color)
+            if (process === 'vacuum') {
+                vfNote.textContent = `Target Vf is higher (Epoxy 0.55). Assumes vacuum bagging or infusion.`;
+                vfNote.classList.remove('text-red-600');
+                vfNote.classList.add('text-minautor-primary');
+            // Vf for Hand is 'warning' (Red color)
+            } else {
+                vfNote.textContent = `Target Vf is lower (Epoxy 0.45). Assumes hand lay-up with more resin needed.`;
+                vfNote.classList.remove('text-minautor-primary');
+                vfNote.classList.add('text-red-600');
+            }
+        }
+
+        // --- Core Calculation Logic ---
+        function calculateResinAndCost(fibreKey, resinKey, areaReq, numPlies, wasteFactorPercent, processType, tubeLength, ribLength) {
+            const F = FIBRE_DATA[fibreKey];
+            const R = RESIN_DATA[resinKey];
+            const wasteFactor = 1 + (wasteFactorPercent / 100);
+
+            // 1. Determine Vf based on process
+            const Vf = processType === 'vacuum' ? R.Vf_vac : R.Vf_hand;
+
+            // 2. Composite Area & Cost
+            const A_total = areaReq * numPlies * wasteFactor;
+            const cost_fabric = A_total * F.Pmat;
+
+            // 3. Resin Calculations
+            const Wa_kg = F.Wa / 1000;
+            const W_fibre = A_total * Wa_kg;
+            const R_wf = ((1 - Vf) / Vf) * (R.rho_res / F.rho_fibre);
+            const W_resin = W_fibre * R_wf;
+            const V_resin = W_resin / (R.rho_res / 1000); // Volume in Litres
+            const cost_resin = W_resin * R.P_resin;
+
+            // 4. Structural Costs
+            const cost_tube_cf = tubeLength * STRUCTURAL_PRICING.TUBE_CF;
+            const cost_rib_al = ribLength * STRUCTURAL_PRICING.RIB_AL;
+            const cost_structural = cost_tube_cf + cost_rib_al;
+
+            // 5. Totals
+            const cost_composite_materials = cost_fabric + cost_resin;
+            const total_cost = cost_composite_materials + cost_structural;
+
+            return {
+                A_total: A_total,
+                L_total: A_total / F.Wstd, // Length of fabric required
+                cost_fabric: cost_fabric,
+                cost_resin: cost_resin,
+                V_resin: V_resin,
+                cost_tube_cf: cost_tube_cf,
+                cost_rib_al: cost_rib_al,
+                cost_structural: cost_structural,
+                cost_composite_materials: cost_composite_materials,
+                total_cost: total_cost,
+                Vf: Vf,
+                W_resin: W_resin // Explicitly return resin weight for export
+            };
+        }
+
+        // --- CSV Export Function ---
+        function exportToCSV() {
+            if (components.length === 0) {
+                const errorElement = document.getElementById('error-message');
+                errorElement.textContent = "Please add at least one component before exporting data.";
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            // 1. Define Headers
+            const headers = [
+                "Component Name", "Fibre Material", "Weave/GSM", "Resin System", "Process",
+                "Comp. Area (m²)", "Plies", "Waste Factor (%)", "Total Fabric Area (m²)", 
+                "Fabric Cost (€)", "Resin Volume (L)", "Resin Weight (kg)", "Resin Cost (€)",
+                "Carbon Tube Length (m)", "Aluminum Rib Length (m)", "Structural Cost (€)", "TOTAL COMPONENT COST (€)"
+            ];
+
+            let csv = headers.join(',') + '\n';
+
+            // 2. Process Data Rows
+            components.forEach(comp => {
+                const row = [
+                    // Ensure strings are quoted to handle commas if needed, though unlikely for component names here
+                    `"${comp.name}"`, 
+                    comp.fibre.mat,
+                    comp.fibre.weave,
+                    comp.resin.name,
+                    comp.process === 'vacuum' ? 'Vacuum Bagged' : 'Hand Layup',
+                    comp.areaReq.toFixed(2),
+                    comp.numPlies,
+                    comp.waste,
+                    comp.A_total.toFixed(2),
+                    comp.cost_fabric.toFixed(2),
+                    comp.V_resin.toFixed(2),
+                    comp.W_resin.toFixed(2),
+                    comp.cost_resin.toFixed(2),
+                    comp.tubeLength.toFixed(2),
+                    comp.ribLength.toFixed(2),
+                    comp.cost_structural.toFixed(2),
+                    comp.total_cost.toFixed(2)
+                ];
+                csv += row.join(',') + '\n';
+            });
+
+            // 3. Create Blob and Trigger Download
+            const filename = `Minautor_Composites_Estimate_${new Date().toISOString().slice(0, 10)}.csv`;
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+
+            const link = document.createElement("a");
+            if (link.download !== undefined) { 
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+
+        // --- UI Functions ---
+        function addComponent() {
+            const compName = document.getElementById('compName').value.trim();
+            const fibreType = document.getElementById('fibreType').value;
+            const resinType = document.getElementById('resinType').value;
+            const compArea = parseFloat(document.getElementById('compArea').value);
+            const numPlies = parseInt(document.getElementById('numPlies').value, 10);
+            const wasteFactor = parseFloat(document.getElementById('wasteFactor').value);
+            const processType = document.getElementById('processType').value;
+            const tubeLength = parseFloat(document.getElementById('tubeLength').value) || 0;
+            const ribLength = parseFloat(document.getElementById('ribLength').value) || 0;
+            
+            const errorElement = document.getElementById('error-message');
+            errorElement.style.display = 'none';
+
+            if (!compName || !fibreType || !resinType || isNaN(compArea) || compArea <= 0 || isNaN(numPlies) || numPlies < 1 || isNaN(wasteFactor) || wasteFactor < 0) {
+                errorElement.textContent = "Please ensure all composite fields are filled out correctly.";
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            const results = calculateResinAndCost(fibreType, resinType, compArea, numPlies, wasteFactor, processType, tubeLength, ribLength);
+
+            const newComponent = {
+                id: crypto.randomUUID(),
+                name: compName,
+                fibre: FIBRE_DATA[fibreType],
+                resin: RESIN_DATA[resinType],
+                areaReq: compArea,
+                numPlies: numPlies,
+                waste: wasteFactor,
+                process: processType,
+                tubeLength: tubeLength,
+                ribLength: ribLength,
+                ...results
+            };
+
+            components.push(newComponent);
+            renderComponents();
+            updateTotals();
+            // Clear inputs for next entry (except config)
+            document.getElementById('compName').value = '';
+            document.getElementById('fibreType').value = '';
+            document.getElementById('resinType').value = '';
+            document.getElementById('compArea').value = '';
+            document.getElementById('numPlies').value = '';
+            document.getElementById('tubeLength').value = '0';
+            document.getElementById('ribLength').value = '0';
+        }
+
+        function removeComponent(id) {
+            components = components.filter(c => c.id !== id);
+            renderComponents();
+            updateTotals();
+        }
+
+        function renderComponents() {
+            const list = document.getElementById('componentList');
+            list.innerHTML = ''; // Clear existing list
+
+            components.forEach(comp => {
+                const structuralNote = [];
+                if (comp.tubeLength > 0) structuralNote.push(`CF Tube: ${comp.tubeLength.toFixed(2)}m`);
+                if (comp.ribLength > 0) structuralNote.push(`Al Rib: ${comp.ribLength.toFixed(2)}m`);
+                
+                const structuralDisplay = structuralNote.join(' | ') || 'None';
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="padding: 12px;">
+                        <div style="font-size: 14px; font-weight: 500; color: #1f2937;">${comp.name}</div>
+                        <div style="font-size: 12px; color: #6b7280;">${comp.areaReq.toFixed(2)} m² x ${comp.numPlies} plies</div>
+                    </td>
+                    <td style="padding: 12px;">
+                        <div style="font-size: 14px; color: #1f2937;">${comp.fibre.weave} / ${comp.resin.name}</div>
+                        <div style="font-size: 12px; color: #6b7280;">Vf: ${comp.Vf} (${comp.process === 'vacuum' ? 'Vac' : 'Hand'})</div>
+                    </td>
+                    <td style="padding: 12px;" class="text-right">${comp.A_total.toFixed(2)} m²</td>
+                    <td style="padding: 12px;" class="text-right text-blue">${comp.V_resin.toFixed(2)} L</td>
+                    <td style="padding: 12px; text-align: right;">
+                        <span title="${structuralDisplay}">€${comp.cost_structural.toFixed(2)}</span>
+                    </td>
+                    <td style="padding: 12px; text-align: right;">€${comp.cost_composite_materials.toFixed(2)}</td>
+                    <td style="padding: 12px; font-weight: 700;" class="text-right text-minautor-primary">€${comp.total_cost.toFixed(2)}</td>
+                    <td style="padding: 12px; text-align: right;">
+                        <button onclick="removeComponent('${comp.id}')" class="remove-btn" title="Remove Component">
+                            &times;
+                        </button>
+                    </td>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function updateTotals() {
+            const totalArea = components.reduce((sum, c) => sum + c.A_total, 0);
+            const totalResin = components.reduce((sum, c) => sum + c.V_resin, 0);
+            const totalStructuralCost = components.reduce((sum, c) => sum + c.cost_structural, 0);
+            const grandTotal = components.reduce((sum, c) => sum + c.total_cost, 0);
+
+            document.getElementById('totalArea').textContent = `${totalArea.toFixed(2)} m²`;
+            document.getElementById('totalResin').textContent = `${totalResin.toFixed(2)} Litres`;
+            document.getElementById('totalStructuralCost').textContent = `€${totalStructuralCost.toFixed(2)}`;
+            document.getElementById('grandTotal').textContent = `€${grandTotal.toFixed(2)}`;
+        }
+        
+        // Initialize the Vf note on load
+        window.onload = updateVfNote;
+    </script>
+</body>
+</html>
