@@ -121,24 +121,71 @@
             border-color: var(--minautor-primary);
         }
         
-        .input-with-unit {
-            position: relative;
-        }
-        .input-with-unit span {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-gray);
-            font-size: 14px;
-            pointer-events: none;
-        }
-        
-        /* Specific Fix for area/length inputs due to absolute positioning */
-        #compArea + span, #tubeLength + span, #ribLength + span {
-            top: calc(50% + 8px); /* Adjust to align with input when in wrapper */
+        /* New Styles for combining value and unit into one visual box */
+        .combined-input-box {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-gray);
+            border-radius: 8px;
+            background-color: white;
+            padding: 0;
+            transition: border-color 0.15s ease-in-out;
         }
 
+        .combined-input-box input[type="number"] {
+            border: none;
+            padding: 12px;
+            flex-grow: 1;
+            min-width: 0;
+            background: transparent;
+        }
+        
+        .combined-input-box .unit-text {
+            padding-right: 12px;
+            color: var(--text-gray);
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .combined-input-box:focus-within {
+             outline: 2px solid var(--minautor-primary);
+             outline-offset: 1px;
+             border-color: var(--minautor-primary);
+             border: none;
+        }
+        /* End combined input styles */
+
+
+        /* Structural inputs use the new combined style for uniformity */
+        .structural-input {
+            padding-right: 12px; /* Add padding for the unit text */
+        }
+        .structural-input input[type="number"] {
+            padding-right: 5px; /* Reduce input padding to prevent conflict */
+        }
+
+        
+        /* --- Layout Fixes for Section 1 Alignment --- */
+        .flex-row-md {
+            display: flex;
+            flex-direction: column;
+        }
+        /* Spacing for column layout on mobile */
+        .flex-row-md > div:not(:last-child) { 
+            margin-bottom: 16px;
+        }
+
+        @media (min-width: 768px) { /* md breakpoint */
+            .flex-row-md {
+                flex-direction: row;
+                gap: 32px; /* space-x-8 */
+                align-items: flex-start; /* Ensure top alignment */
+            }
+            .flex-row-md > div {
+                margin-bottom: 0 !important; /* Remove mobile spacing in row layout */
+            }
+        }
+        
         /* --- Buttons --- */
         .btn-primary {
             width: 100%;
@@ -258,7 +305,7 @@
     <div class="container">
         <header class="header">
             <!-- Logo Integration (Placeholder for image_b106da.png) -->
-            <img src="logo.png" alt="Minautor Racing Team Logo" class="logo">
+            <img src="./image_b106da.png" alt="Minautor Racing Team Logo" class="logo">
             
             <h1 class="uppercase">AERO COMPOSITES ESTIMATOR</h1>
             <p>Material Costing and Resin Calculation Utility</p>
@@ -270,7 +317,7 @@
 
             <div class="flex-row-md">
                 <!-- Supplier Selection -->
-                <div style="flex: 1; margin-bottom: 16px;">
+                <div style="flex: 1;">
                     <label for="supplierSelect">Select Material Supplier:</label>
                     <select id="supplierSelect" onchange="updateProjectConfiguration()">
                         <option value="easy">Easy Composites (EU)</option>
@@ -280,7 +327,7 @@
                 </div>
 
                 <!-- Process Selection -->
-                <div style="flex: 1; margin-bottom: 16px;">
+                <div style="flex: 1;">
                     <label for="processType">Manufacturing Process:</label>
                     <select id="processType" onchange="updateProjectConfiguration()">
                         <option value="vacuum">Vacuum Bagging (High Vf, Structural)</option>
@@ -292,9 +339,9 @@
                 <!-- Waste Percentage Input -->
                 <div style="flex: 1;">
                     <label for="wasteFactor">Composite Waste Allowance (%):</label>
-                    <div class="input-with-unit">
+                    <div class="combined-input-box">
                         <input type="number" id="wasteFactor" value="15" min="0" max="100" onchange="updateProjectConfiguration()" />
-                        <span>%</span>
+                        <span class="unit-text">%</span>
                     </div>
                     <p style="font-size: 14px; color: var(--text-gray); margin-top: 8px;">Waste applies only to the sheet composite fabric area.</p>
                 </div>
@@ -306,7 +353,10 @@
             <h2>2. Add New Component</h2>
             
             <div class="grid-layout">
-                <input type="text" id="compName" placeholder="Component Name (e.g., Front Wing Main Plane)" class="col-span-4" />
+                <!-- Component Name -->
+                <div class="col-span-4">
+                    <input type="text" id="compName" placeholder="Component Name (e.g., Front Wing Main Plane)" />
+                </div>
                 
                 <!-- Column 1: Composite -->
                 <div>
@@ -340,34 +390,43 @@
                     </select>
                 </div>
                 
-                <!-- Column 3: Area -->
-                <div class="input-with-unit">
+                <!-- Column 3: Area (FIXED - CLEAN) -->
+                <div>
                     <label for="compArea">Component Area (Area Required):</label>
-                    <input type="number" id="compArea" placeholder="Area" min="0.01" step="0.01" />
-                    <span>m²</span>
+                    <div class="combined-input-box">
+                        <input type="number" id="compArea" placeholder="Area" min="0.01" step="0.01" />
+                        <span class="unit-text">m²</span>
+                    </div>
                 </div>
                 
-                <!-- Column 4: Plies -->
+                <!-- Column 4: Plies (FIXED - CLEAN) -->
                 <div>
                     <label for="numPlies">Number of Plies:</label>
-                    <input type="number" id="numPlies" placeholder="Plies" min="1" step="1" />
+                    <div class="combined-input-box">
+                        <input type="number" id="numPlies" placeholder="Plies" min="1" step="1" />
+                        <span class="unit-text">Plies</span>
+                    </div>
                 </div>
                 
                 <!-- Structural Support Row -->
                 <h3 class="col-span-4" style="font-size: 18px; font-weight: 600; color: var(--minautor-dark); margin-top: 16px; margin-bottom: 8px;">Internal Support Structure (Optional)</h3>
 
-                <!-- Carbon Tubes -->
-                <div class="input-with-unit col-span-2">
+                <!-- Carbon Tubes (FIXED - CLEAN) -->
+                <div class="col-span-2">
                     <label for="tubeLength">Carbon Tube Length (e.g., for spars):</label>
-                    <input type="number" id="tubeLength" value="0" min="0" step="0.01" />
-                    <span>m (€35.00/m)</span>
+                    <div class="combined-input-box structural-input">
+                        <input type="number" id="tubeLength" value="0" min="0" step="0.01" />
+                        <span class="unit-text">m (€35.00/m)</span>
+                    </div>
                 </div>
                 
-                <!-- Aluminum Ribs -->
-                <div class="input-with-unit col-span-2">
+                <!-- Aluminum Ribs (FIXED - CLEAN) -->
+                <div class="col-span-2">
                     <label for="ribLength">Aluminum Rib Length (e.g., D-Box support):</label>
-                    <input type="number" id="ribLength" value="0" min="0" step="0.01" />
-                    <span>m (€8.00/m)</span>
+                    <div class="combined-input-box structural-input">
+                        <input type="number" id="ribLength" value="0" min="0" step="0.01" />
+                        <span class="unit-text">m (€8.00/m)</span>
+                    </div>
                 </div>
 
                 <div class="col-span-4" style="margin-top: 16px;">
