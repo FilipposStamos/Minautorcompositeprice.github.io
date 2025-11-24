@@ -19,11 +19,11 @@
     <style>
         /* --- Minautor Branding & Global Styles --- */
         :root {
-           --minautor-primary: #8B6D4C; /* Muted Bronze/Brown */ 
-            --minautor-dark: #1a1a1a; 
-            --background-light: #808080; 
-            --border-gray: #949cac; 
-            --text-white: #ffffff;
+            --minautor-primary: #8B6D4C; /* Muted Bronze/Brown */
+            --minautor-dark: #1a1a1a;
+            --background-light: #f7f9fc;
+            --border-gray: #e5e7eb;
+            --text-gray: #6b7280;
         }
 
         body {
@@ -86,6 +86,7 @@
 
         input:focus, select:focus { outline: 2px solid var(--minautor-primary); border-color: var(--minautor-primary); }
         
+        /* Combined Input Box */
         .combined-input-box {
             display: flex; align-items: center; border: 1px solid var(--border-gray);
             border-radius: 8px; background-color: white; overflow: hidden;
@@ -131,13 +132,14 @@
 
         /* --- 3D Viewer Styles --- */
         #stl-viewer {
-            width: 100%; height: 300px; background-color: #1a1a1a;
+            width: 100%; height: 350px; background-color: #1a1a1a;
             border-radius: 8px; overflow: hidden; position: relative;
             margin-bottom: 16px;
         }
         #stl-loading {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: white; font-weight: 600; display: none;
+            color: white; font-weight: 600; display: block; /* Default visible */
+            pointer-events: none;
         }
         .stats-grid {
             display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
@@ -145,6 +147,29 @@
         }
         .stat-box h4 { font-size: 11px; text-transform: uppercase; color: #0369a1; margin: 0 0 4px 0; }
         .stat-box .val { font-size: 16px; font-weight: 700; color: #0c4a6e; }
+        
+        /* Section View Slider */
+        .slider-wrapper {
+            background-color: #f0f9ff; 
+            padding: 12px; 
+            border-radius: 8px; 
+            margin-top: 16px;
+            border: 1px solid #bae6fd;
+        }
+        .slider-wrapper label { color: #0c4a6e; font-size: 14px; margin-bottom: 8px; display: block; }
+        .slider-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .slider-controls select {
+            width: 140px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            border: 1px solid #bae6fd;
+        }
+        .slider-controls input[type=range] { flex-grow: 1; height: 6px; }
 
         /* --- Tables --- */
         .results-table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -162,30 +187,45 @@
 
     <div class="container">
         <header class="header">
-            <img src="logo.png" alt="Minautor Racing Team Logo" class="logo">
+            <img src="./image_b106da.png" alt="Minautor Racing Team Logo" class="logo">
             <h1 class="uppercase">AERO COMPOSITES ESTIMATOR</h1>
             <p>Cost & Resin Calculator</p>
         </header>
 
         <!-- 3D Viewer Section -->
         <div class="card stl-card">
-            <div class="section-title">3D Model Analyzer (STL)</div>
+            <div class="section-title">3D Model Analyzer (STL Only)</div>
             <div class="grid-layout">
                 <div class="col-span-2">
                     <label>Upload STL File</label>
                     <input type="file" id="stlInput" accept=".stl" />
-                    <p style="font-size:12px; color:gray; margin-top:4px;">Upload a binary STL to get automatic Area & Volume.</p>
+                    <p style="font-size:12px; color:gray; margin-top:4px;">Upload a binary STL file. Automatic Area & Volume calculation.</p>
                 </div>
-                <div class="col-span-2" style="display:flex; align-items:flex-end;">
-                    <button id="resetViewBtn" class="btn-secondary" style="width:100%; display:none;">Reset Camera</button>
+                <div class="col-span-2" style="display:flex; align-items:flex-end; gap: 8px;">
+                    <button id="resetViewBtn" class="btn-secondary" style="flex-grow: 1; display:none;">Reset Camera</button>
+                    <button id="clearModelBtn" class="btn-secondary" style="flex-grow: 1; display:none; color: #ef4444; border-color: #ef4444;">Clear Model</button>
                 </div>
             </div>
 
-            <div id="stl-viewer" class="col-span-4 mt-4">
-                <div id="stl-loading">Loading Model...</div>
+            <div id="stl-viewer">
+                <div id="stl-loading">Initializing 3D Engine...</div>
             </div>
 
-            <div id="stl-results" style="display:none;">
+            <!-- SECTION VIEW CONTROLS -->
+            <div id="section-view-controls" class="slider-wrapper" style="display:none;">
+                <label for="clippingSlider">Section View (Clipping Plane):</label>
+                <div class="slider-controls">
+                    <select id="clippingAxis">
+                        <option value="X">X-Axis (Side)</option>
+                        <option value="Y">Y-Axis (Top)</option>
+                        <option value="Z">Z-Axis (Front)</option>
+                    </select>
+                    <input type="range" id="clippingSlider" min="0" max="100" value="0" step="0.1">
+                </div>
+                <p style="font-size:12px; color:gray; margin-top:4px;">Select axis and drag slider to slice through the model.</p>
+            </div>
+
+            <div id="stl-results" style="display:none; margin-top: 24px;">
                 <div class="stats-grid">
                     <div class="stat-box">
                         <h4>Total Surface Area</h4>
@@ -201,9 +241,8 @@
                     </div>
                 </div>
                 <div style="margin-top:12px; display:flex; gap:12px; align-items:center;">
-                    <button onclick="applyStlArea(1)" class="btn-action">Use Full Area</button>
-                    <button onclick="applyStlArea(0.5)" class="btn-action" style="background-color:#0ea5e9;">Use Half Area (Thin Shell)</button>
-                    <p style="font-size:12px; color:gray;">*Use "Half Area" if STL is a solid block representing a thin part.</p>
+                    <button onclick="applyStlArea(1)" class="btn-action">Use Full Area (Both Sides)</button>
+                    <button onclick="applyStlArea(0.5)" class="btn-action" style="background-color:#0ea5e9;">Use Half Area (Single Skin)</button>
                 </div>
             </div>
         </div>
@@ -383,39 +422,266 @@
         // --- 3D Viewer Variables ---
         let scene, camera, renderer, controls, mesh;
         let calculatedAreaM2 = 0;
+        let objectBounds = { minX: 0, maxX: 0, minY: 0, maxY: 0, minZ: 0, maxZ: 0 };
+        let modelLoaded = false;
+        let axesHelper;
+        
+        // Define 3 Planes with NEGATIVE normals to "keep left" side initially
+        const planeX = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0);
+        const planeY = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+        const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0);
+        let activePlane = planeX; 
+
+        // --- HELPER FUNCTIONS (Defined first) ---
+
+        function updateClippingPlane(event) {
+            if (!modelLoaded || !activePlane || !mesh) return;
+            const value = parseFloat(event.target.value);
+            // Plane constant = value. Condition -x + constant > 0 => x < constant.
+            activePlane.constant = value; 
+        }
+
+        // Reset slider and plane based on selected axis
+        function resetClippingSlider() {
+            if (!modelLoaded) return;
+            const axis = document.getElementById('clippingAxis').value;
+            const slider = document.getElementById('clippingSlider');
+            let min, max;
+
+            // Select active plane based on dropdown
+            if (axis === 'X') {
+                activePlane = planeX;
+                min = objectBounds.minX; max = objectBounds.maxX;
+            } else if (axis === 'Y') {
+                activePlane = planeY;
+                min = objectBounds.minY; max = objectBounds.maxY;
+            } else { 
+                activePlane = planeZ;
+                min = objectBounds.minZ; max = objectBounds.maxZ;
+            }
+
+            // Configure Slider range
+            slider.min = min;
+            slider.max = max;
+            slider.value = max; // Start fully visible (x < max)
+            
+            // Apply active plane to renderer and material
+            if (renderer) renderer.clippingPlanes = [activePlane];
+            if (mesh && mesh.material) {
+                mesh.material.clippingPlanes = [activePlane];
+                mesh.material.needsUpdate = true;
+            }
+            
+            // Reset plane constant (hide clipping initially)
+            activePlane.constant = max + 10; // Ensure everything is visible
+            updateClippingPlane({ target: slider });
+        }
+        window.resetClippingSlider = resetClippingSlider; // Expose to global
+
+        function fitCameraToMesh(object, bbox = null) {
+             if (!bbox) bbox = new THREE.Box3().setFromObject(object);
+             const size = bbox.getSize(new THREE.Vector3());
+             const maxDim = Math.max(size.x, size.y, size.z);
+             const fov = camera.fov * (Math.PI / 180);
+             let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+             cameraZ *= 2; 
+
+             const center = bbox.getCenter(new THREE.Vector3());
+             
+             // Store bounds for clipping control
+             objectBounds.minX = bbox.min.x; objectBounds.maxX = bbox.max.x;
+             objectBounds.minY = bbox.min.y; objectBounds.maxY = bbox.max.y;
+             objectBounds.minZ = bbox.min.z; objectBounds.maxZ = bbox.max.z;
+             
+             // Adjust axes helper size and position
+             if (axesHelper) {
+                axesHelper.scale.set(maxDim / 5, maxDim / 5, maxDim / 5);
+             }
+
+             // Reset clipping plane and slider
+             resetClippingSlider(); 
+
+             camera.position.set(center.x + cameraZ, center.y + cameraZ, center.z + cameraZ);
+             camera.lookAt(center);
+             controls.target.copy(center);
+             controls.update();
+        }
+
+        function calculateGeometryData(geometry) {
+             const pos = geometry.attributes.position;
+             if (!pos) return;
+             let area = 0;
+             const pA = new THREE.Vector3(), pB = new THREE.Vector3(), pC = new THREE.Vector3();
+             const cb = new THREE.Vector3(), ab = new THREE.Vector3();
+
+             for (let i = 0; i < pos.count; i += 3) {
+                 pA.fromBufferAttribute(pos, i);
+                 pB.fromBufferAttribute(pos, i + 1);
+                 pC.fromBufferAttribute(pos, i + 2);
+                 cb.subVectors(pC, pB);
+                 ab.subVectors(pA, pB);
+                 cb.cross(ab);
+                 area += 0.5 * cb.length();
+             }
+             calculatedAreaM2 = area / 1000000;
+             
+             // Simple Volume (tetrahedrons)
+             let volume = 0;
+             for (let i = 0; i < pos.count; i += 3) {
+                 pA.fromBufferAttribute(pos, i);
+                 pB.fromBufferAttribute(pos, i + 1);
+                 pC.fromBufferAttribute(pos, i + 2);
+                 volume += pA.dot(pB.cross(pC)) / 6.0;
+             }
+             volume = Math.abs(volume);
+             const volCm3 = volume / 1000;
+             const thickness = area > 0 ? (volume / (area * 0.5)) : 0;
+
+             document.getElementById('stlArea').textContent = calculatedAreaM2.toFixed(4) + " m²";
+             document.getElementById('stlVol').textContent = volCm3.toFixed(2) + " cm³";
+             document.getElementById('stlThick').textContent = thickness.toFixed(2) + " mm";
+        }
+
+        window.applyStlArea = function(factor) {
+            const area = calculatedAreaM2 * factor;
+            document.getElementById('compArea').value = area.toFixed(4);
+            document.querySelector('.input-card').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        window.clearModel = function() {
+            if(mesh) { scene.remove(mesh); mesh=null; }
+            modelLoaded = false;
+            document.getElementById('stl-results').style.display = 'none';
+            document.getElementById('section-view-controls').style.display = 'none';
+            document.getElementById('resetViewBtn').style.display = 'none';
+            document.getElementById('clearModelBtn').style.display = 'none';
+            document.getElementById('stlInput').value = '';
+            document.getElementById('stl-loading').textContent = 'Ready to load model.';
+            document.getElementById('stl-loading').style.display = 'block';
+        }
+
+        function loadModel(file) {
+            const reader = new FileReader();
+            document.getElementById('stl-loading').textContent = 'Loading STL...';
+            document.getElementById('stl-loading').style.display = 'block';
+            document.getElementById('stl-results').style.display = 'none';
+            
+            reader.onload = function(event) {
+                const contents = event.target.result;
+                if (mesh) {
+                    scene.remove(mesh);
+                    mesh.geometry.dispose();
+                    mesh.material.dispose();
+                }
+
+                const loader = new STLLoader();
+                try {
+                    const geometry = loader.parse(contents);
+                    
+                    // Center Geometry
+                    geometry.computeBoundingBox();
+                    const center = geometry.boundingBox.getCenter(new THREE.Vector3());
+                    const material = new THREE.MeshPhongMaterial({ 
+                        color: 0x8B6D4C, 
+                        specular: 0x111111, 
+                        shininess: 50,
+                        side: THREE.DoubleSide,
+                        clippingPlanes: [activePlane],
+                        clipIntersection: false
+                    });
+
+                    mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.sub(center);
+                    scene.add(mesh);
+
+                    // Calculate new bounds
+                    const bbox = new THREE.Box3().setFromObject(mesh);
+                    const size = bbox.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    
+                    // Update Bounds for Clipping
+                    objectBounds.minX = bbox.min.x; objectBounds.maxX = bbox.max.x;
+                    objectBounds.minY = bbox.min.y; objectBounds.maxY = bbox.max.y;
+                    objectBounds.minZ = bbox.min.z; objectBounds.maxZ = bbox.max.z;
+
+                    // Update Camera
+                    let cameraZ = Math.abs(maxDim / 2 / Math.tan(camera.fov * (Math.PI / 180) / 2)) * 2;
+                    camera.position.set(cameraZ, cameraZ, cameraZ);
+                    camera.lookAt(0,0,0);
+                    controls.target.set(0,0,0);
+                    controls.update();
+
+                    // Update Logic
+                    modelLoaded = true;
+                    calculateGeometryData(geometry);
+                    resetClippingSlider(); 
+
+                    // UI
+                    document.getElementById('stl-loading').style.display = 'none';
+                    document.getElementById('stl-results').style.display = 'block';
+                    document.getElementById('resetViewBtn').style.display = 'inline-block';
+                    document.getElementById('clearModelBtn').style.display = 'inline-block';
+                    document.getElementById('section-view-controls').style.display = 'block';
+
+                } catch (err) {
+                    console.error(err);
+                    document.getElementById('stl-loading').textContent = "Error parsing STL file. Ensure it is a valid binary STL.";
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
 
         function init3D() {
             const container = document.getElementById('stl-viewer');
             
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x1a1a1a);
-            scene.add(new THREE.GridHelper(1000, 20, 0x444444, 0x222222));
+            
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 5000);
+            camera.position.set(200, 200, 200);
 
             // Lighting
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
             scene.add(ambientLight);
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-            dirLight.position.set(10, 20, 10);
-            scene.add(dirLight);
+            const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.5);
+            dirLight1.position.set(10, 20, 10);
+            scene.add(dirLight1);
+            const dirLight2 = new THREE.DirectionalLight(0xffffff, 1.0);
+            dirLight2.position.set(-10, -10, -10);
+            scene.add(dirLight2);
 
-            // Camera
-            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 5000);
-            camera.position.set(200, 200, 200);
-
-            // Renderer
+            // Renderer with Local Clipping Enabled
             renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.localClippingEnabled = true; 
             renderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(renderer.domElement);
 
-            // Controls
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
+            
+            axesHelper = new THREE.AxesHelper(100);
+            scene.add(axesHelper);
 
-            // Window Resize
+            // Events
             window.addEventListener('resize', onWindowResize);
-            animate();
-        }
+            document.getElementById('clippingSlider').addEventListener('input', updateClippingPlane);
+            document.getElementById('clippingAxis').addEventListener('change', resetClippingSlider);
+            document.getElementById('clearModelBtn').addEventListener('click', clearModel);
+            document.getElementById('resetViewBtn').addEventListener('click', () => {
+                 if (mesh) fitCameraToMesh(mesh);
+            });
+            document.getElementById('stlInput').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) loadModel(file);
+            });
 
+            animate();
+            
+            // Signal ready
+            document.getElementById('stl-loading').textContent = "Ready to load model.";
+            document.getElementById('stl-loading').style.display = "block";
+        }
+        
         function onWindowResize() {
             const container = document.getElementById('stl-viewer');
             if (!container || !camera || !renderer) return;
@@ -430,132 +696,13 @@
             if (renderer && scene && camera) renderer.render(scene, camera);
         }
 
-        // STL Logic
-        document.getElementById('stlInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            if (!scene) init3D(); // Init if not already done
-
-            const loader = new STLLoader();
-            const reader = new FileReader();
-
-            document.getElementById('stl-loading').style.display = 'block';
-            document.getElementById('stl-results').style.display = 'none';
-
-            reader.onload = function(event) {
-                const contents = event.target.result;
-                const geometry = loader.parse(contents);
-                
-                // Clear previous
-                if (mesh) {
-                    scene.remove(mesh);
-                    mesh.geometry.dispose();
-                    mesh.material.dispose();
-                }
-
-                // Material
-                const material = new THREE.MeshPhongMaterial({ 
-                    color: 0x8B6D4C, 
-                    specular: 0x111111, 
-                    shininess: 50,
-                    side: THREE.DoubleSide 
-                });
-                
-                mesh = new THREE.Mesh(geometry, material);
-                
-                // Center and Scale
-                geometry.computeBoundingBox();
-                const center = geometry.boundingBox.getCenter(new THREE.Vector3());
-                mesh.position.sub(center); // Center mesh
-                
-                // Fit Camera
-                const size = geometry.boundingBox.getSize(new THREE.Vector3());
-                const maxDim = Math.max(size.x, size.y, size.z);
-                camera.position.set(maxDim * 1.5, maxDim * 1.5, maxDim * 1.5);
-                camera.lookAt(0,0,0);
-
-                scene.add(mesh);
-                document.getElementById('stl-loading').style.display = 'none';
-                document.getElementById('stl-results').style.display = 'block';
-                document.getElementById('resetViewBtn').style.display = 'inline-block';
-
-                // Calculations
-                calculateGeometryData(geometry);
-            };
-
-            reader.readAsArrayBuffer(file);
-        });
-
-        function calculateGeometryData(geometry) {
-            // 1. Surface Area
-            // If index exists, simple. If not, iterate position attribute.
-            let area = 0;
-            // Three.js utils usually needed, but simple loop works for triangles
-            const pos = geometry.attributes.position;
-            const pA = new THREE.Vector3(), pB = new THREE.Vector3(), pC = new THREE.Vector3();
-            const cb = new THREE.Vector3(), ab = new THREE.Vector3();
-
-            for (let i = 0; i < pos.count; i += 3) {
-                pA.fromBufferAttribute(pos, i);
-                pB.fromBufferAttribute(pos, i + 1);
-                pC.fromBufferAttribute(pos, i + 2);
-                
-                cb.subVectors(pC, pB);
-                ab.subVectors(pA, pB);
-                cb.cross(ab);
-                area += 0.5 * cb.length();
-            }
-
-            // Units are likely mm^2 if exported from CAD. Convert to m^2
-            // Area in mm^2 / 1,000,000 = m^2
-            calculatedAreaM2 = area / 1000000;
-            
-            // 2. Volume (Signed Volume of tetrahedrons)
-            let volume = 0;
-            for (let i = 0; i < pos.count; i += 3) {
-                pA.fromBufferAttribute(pos, i);
-                pB.fromBufferAttribute(pos, i + 1);
-                pC.fromBufferAttribute(pos, i + 2);
-                // Signed volume of tetrahedron
-                volume += pA.dot(pB.cross(pC)) / 6.0;
-            }
-            // Abs volume
-            volume = Math.abs(volume);
-            const volCm3 = volume / 1000; // mm^3 to cm^3
-
-            // 3. Est Thickness = Volume / (Area/2) (assuming closed thin shell)
-            // (Volume mm3) / (Area mm2 * 0.5) = mm
-            const thickness = (area > 0) ? (volume / (area * 0.5)) : 0;
-
-            // UI Update
-            document.getElementById('stlArea').textContent = calculatedAreaM2.toFixed(4) + " m²";
-            document.getElementById('stlVol').textContent = volCm3.toFixed(2) + " cm³";
-            document.getElementById('stlThick').textContent = thickness.toFixed(2) + " mm";
-        }
-
-        // Expose function to window so standard HTML button can call it
-        window.applyStlArea = function(factor) {
-            const area = calculatedAreaM2 * factor;
-            document.getElementById('compArea').value = area.toFixed(4);
-            // Scroll down nicely
-            document.querySelector('.input-card').scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        document.getElementById('resetViewBtn').addEventListener('click', () => {
-            if(mesh && camera) {
-                const size = mesh.geometry.boundingBox.getSize(new THREE.Vector3());
-                const maxDim = Math.max(size.x, size.y, size.z);
-                camera.position.set(maxDim * 1.5, maxDim * 1.5, maxDim * 1.5);
-                camera.lookAt(0,0,0);
-            }
-        });
-
+        // Start
+        init3D(); 
     </script>
 
     <!-- Main Estimator Logic -->
     <script>
-        // --- Data ---
+        // [Main Logic Script remains unchanged from v29, duplicated here for completeness]
         const FIBRE_DATA = {
             'CF_TWILL_200': { mat: 'Carbon Fiber', weave: '2x2 Twill (200gsm)', thickness: 0.25, Wa: 200, rho_fibre: 1800, Wstd: 1.00, Pmat_easy: 25.00, Pmat_andreou: 26.00, suppliers: ['easy', 'andreou'] },
             'CF_TWILL_400': { mat: 'Carbon Fiber', weave: '2x2 Twill (400gsm)', thickness: 0.45, Wa: 400, rho_fibre: 1800, Wstd: 1.00, Pmat_easy: 45.00, Pmat_andreou: 48.00, suppliers: ['easy', 'andreou'] },
@@ -588,7 +735,6 @@
 
         let components = [];
 
-        // --- Logic ---
         function updateProjectConfiguration() {
             updateVfNote();
             updateComponentOptions();
