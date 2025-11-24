@@ -6,24 +6,34 @@
     <title>FS Aero Composites Estimator</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Import Map for Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
     <style>
         /* --- Minautor Branding & Global Styles --- */
         :root {
-        --minautor-primary: #8B6D4C; /* Muted Bronze/Brown */ 
-        --minautor-dark: #1a1a1a; 
-        --background-light: #808080; 
-        --border-gray: #949cac; 
-        --text-white: #ffffff;
+           --minautor-primary: #8B6D4C; /* Muted Bronze/Brown */ 
+            --minautor-dark: #1a1a1a; 
+            --background-light: #808080; 
+            --border-gray: #949cac; 
+            --text-white: #ffffff;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--background-light);
-            padding: 16px; /* p-4 */
+            padding: 16px;
         }
         
         .container {
-            max-width: 1200px; /* max-w-6xl equivalent */
+            max-width: 1200px;
             margin-left: auto;
             margin-right: auto;
         }
@@ -37,173 +47,104 @@
             margin-bottom: 32px;
         }
         
-        .config-card {
-            border-top: 4px solid var(--minautor-primary);
-        }
-        
-        .input-card {
-            border: 2px dashed var(--minautor-primary);
-        }
+        .config-card { border-top: 4px solid var(--minautor-primary); }
+        .input-card { border: 2px dashed var(--minautor-primary); }
+        .stl-card { border-left: 4px solid #3b82f6; } /* Blue accent for 3D tool */
 
         /* --- Header --- */
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        .logo {
-            margin: 0 auto 16px;
-            width: 100%;
-            max-width: 384px; /* max-w-sm */
-        }
-        .header h1 {
-            font-size: 24px;
-            font-weight: 800; /* extabold */
-            color: var(--minautor-dark);
-            text-transform: uppercase;
-        }
-        .header p {
-            font-size: 18px;
-            color: var(--text-gray);
-            margin-top: 4px;
-        }
+        .header { text-align: center; margin-bottom: 40px; }
+        .logo { margin: 0 auto 16px; width: 100%; max-width: 384px; }
+        .header h1 { font-size: 24px; font-weight: 800; color: var(--minautor-dark); text-transform: uppercase; }
+        .header p { font-size: 18px; color: var(--text-gray); margin-top: 4px; }
 
         /* --- Typography & Layout --- */
         .section-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--minautor-dark);
-            margin-bottom: 16px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border-gray);
+            font-size: 20px; font-weight: 700; color: var(--minautor-dark);
+            margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-gray);
         }
         
         .section-subtitle {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--minautor-dark);
-            margin-top: 24px;
-            margin-bottom: 12px;
-            grid-column: 1 / -1;
-            background-color: #f9fafb;
-            padding: 8px 12px;
-            border-radius: 6px;
+            font-size: 16px; font-weight: 600; color: var(--minautor-dark);
+            margin-top: 24px; margin-bottom: 12px; grid-column: 1 / -1;
+            background-color: #f9fafb; padding: 8px 12px; border-radius: 6px;
             border-left: 4px solid var(--minautor-primary);
         }
 
-        .grid-layout {
-            display: grid;
-            grid-template-columns: repeat(1, minmax(0, 1fr));
-            gap: 16px;
-        }
+        .grid-layout { display: grid; grid-template-columns: 1fr; gap: 16px; }
         @media (min-width: 768px) {
-            .grid-layout {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-            }
+            .grid-layout { grid-template-columns: repeat(4, minmax(0, 1fr)); }
             .col-span-2 { grid-column: span 2; }
             .col-span-4 { grid-column: span 4; }
         }
         
-        label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-gray);
-            margin-bottom: 6px;
+        label { display: block; font-size: 12px; font-weight: 600; color: var(--text-gray); margin-bottom: 6px; }
+
+        input[type="text"], input[type="number"], select, input[type="file"] {
+            width: 100%; padding: 12px; border: 1px solid var(--border-gray);
+            border-radius: 8px; transition: all 0.15s ease; background-color: white;
         }
 
-        input[type="text"], input[type="number"], select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-gray);
-            border-radius: 8px;
-            transition: all 0.15s ease;
-            background-color: white;
-        }
-
-        input:focus, select:focus {
-            outline: 2px solid var(--minautor-primary);
-            outline-offset: 1px;
-            border-color: var(--minautor-primary);
-        }
+        input:focus, select:focus { outline: 2px solid var(--minautor-primary); border-color: var(--minautor-primary); }
         
-        /* Combined Input Box (Value + Unit) */
         .combined-input-box {
-            display: flex;
-            align-items: center;
-            border: 1px solid var(--border-gray);
-            border-radius: 8px;
-            background-color: white;
-            overflow: hidden;
+            display: flex; align-items: center; border: 1px solid var(--border-gray);
+            border-radius: 8px; background-color: white; overflow: hidden;
         }
-        .combined-input-box input {
-            border: none;
-            padding: 12px;
-            flex-grow: 1;
-            min-width: 0;
-        }
+        .combined-input-box input { border: none; padding: 12px; flex-grow: 1; min-width: 0; }
         .combined-input-box .unit-text {
-            padding: 0 12px;
-            color: var(--text-gray);
-            font-size: 13px;
-            background-color: #f9fafb;
-            border-left: 1px solid var(--border-gray);
-            height: 100%;
-            display: flex;
-            align-items: center;
+            padding: 0 12px; color: var(--text-gray); font-size: 13px;
+            background-color: #f9fafb; border-left: 1px solid var(--border-gray);
+            height: 100%; display: flex; align-items: center;
         }
-        .combined-input-box:focus-within {
-             outline: 2px solid var(--minautor-primary);
-             border-color: var(--minautor-primary);
-        }
+        .combined-input-box:focus-within { outline: 2px solid var(--minautor-primary); border-color: var(--minautor-primary); }
+
+        .structural-input { padding-right: 12px; }
+        .structural-input input[type="number"] { padding-right: 5px; }
 
         /* --- Conditional Sections --- */
-        .conditional-section {
-            display: none; /* Hidden by default */
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        .conditional-section.active {
-            display: grid; /* or block depending on context */
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .conditional-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .conditional-section.active { display: grid; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
         /* --- Buttons --- */
         .btn-primary {
-            width: 100%;
-            background-color: var(--minautor-primary);
-            color: white;
-            font-weight: 700;
-            padding: 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            border: none;
-            font-size: 16px;
-            transition: background-color 0.2s;
+            width: 100%; background-color: var(--minautor-primary); color: white;
+            font-weight: 700; padding: 14px; border-radius: 8px; cursor: pointer;
+            border: none; font-size: 16px; transition: background-color 0.2s;
         }
         .btn-primary:hover { background-color: var(--minautor-dark); }
 
         .btn-secondary {
-            background-color: white;
-            color: var(--minautor-dark);
-            font-weight: 600;
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: 1px solid var(--border-gray);
-            cursor: pointer;
-            transition: all 0.2s;
+            background-color: white; color: var(--minautor-dark); font-weight: 600;
+            padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border-gray);
+            cursor: pointer; transition: all 0.2s;
         }
         .btn-secondary:hover { background-color: #f3f4f6; }
         
-        .remove-btn {
-            color: #ef4444;
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
+        .btn-action {
+            background-color: #3b82f6; color: white; font-weight: 600;
+            padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer;
         }
+        .btn-action:hover { background-color: #2563eb; }
+        
+        .remove-btn { color: #ef4444; background: none; border: none; font-size: 20px; cursor: pointer; }
+
+        /* --- 3D Viewer Styles --- */
+        #stl-viewer {
+            width: 100%; height: 300px; background-color: #1a1a1a;
+            border-radius: 8px; overflow: hidden; position: relative;
+            margin-bottom: 16px;
+        }
+        #stl-loading {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: white; font-weight: 600; display: none;
+        }
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+            background: #f0f9ff; padding: 12px; border-radius: 8px; border: 1px solid #bae6fd;
+        }
+        .stat-box h4 { font-size: 11px; text-transform: uppercase; color: #0369a1; margin: 0 0 4px 0; }
+        .stat-box .val { font-size: 16px; font-weight: 700; color: #0c4a6e; }
 
         /* --- Tables --- */
         .results-table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -212,20 +153,8 @@
         .text-right { text-align: right; }
         
         /* --- Totals --- */
-        #totalsPanel div {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            font-weight: 600;
-            color: var(--minautor-dark);
-        }
-        #totalsPanel div:last-child {
-            font-size: 20px;
-            color: var(--minautor-primary);
-            border-top: 2px solid #e5e7eb;
-            margin-top: 8px;
-            padding-top: 16px;
-        }
+        #totalsPanel div { display: flex; justify-content: space-between; padding: 8px 0; font-weight: 600; color: var(--minautor-dark); }
+        #totalsPanel div:last-child { font-size: 20px; color: var(--minautor-primary); border-top: 2px solid #e5e7eb; margin-top: 8px; padding-top: 16px; }
 
     </style>
 </head>
@@ -233,10 +162,51 @@
 
     <div class="container">
         <header class="header">
-            <img src="logo.png" alt="Minautor Racing Team Logo" class="logo">
+            <img src="./image_b106da.png" alt="Minautor Racing Team Logo" class="logo">
             <h1 class="uppercase">AERO COMPOSITES ESTIMATOR</h1>
             <p>Cost & Resin Calculator</p>
         </header>
+
+        <!-- 3D Viewer Section -->
+        <div class="card stl-card">
+            <div class="section-title">3D Model Analyzer (STL)</div>
+            <div class="grid-layout">
+                <div class="col-span-2">
+                    <label>Upload STL File</label>
+                    <input type="file" id="stlInput" accept=".stl" />
+                    <p style="font-size:12px; color:gray; margin-top:4px;">Upload a binary STL to get automatic Area & Volume.</p>
+                </div>
+                <div class="col-span-2" style="display:flex; align-items:flex-end;">
+                    <button id="resetViewBtn" class="btn-secondary" style="width:100%; display:none;">Reset Camera</button>
+                </div>
+            </div>
+
+            <div id="stl-viewer" class="col-span-4 mt-4">
+                <div id="stl-loading">Loading Model...</div>
+            </div>
+
+            <div id="stl-results" style="display:none;">
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <h4>Total Surface Area</h4>
+                        <div class="val" id="stlArea">0.00 m²</div>
+                    </div>
+                    <div class="stat-box">
+                        <h4>Material Volume</h4>
+                        <div class="val" id="stlVol">0.00 cm³</div>
+                    </div>
+                    <div class="stat-box">
+                        <h4>Est. Thickness</h4>
+                        <div class="val" id="stlThick">0.00 mm</div>
+                    </div>
+                </div>
+                <div style="margin-top:12px; display:flex; gap:12px; align-items:center;">
+                    <button onclick="applyStlArea(1)" class="btn-action">Use Full Area</button>
+                    <button onclick="applyStlArea(0.5)" class="btn-action" style="background-color:#0ea5e9;">Use Half Area (Thin Shell)</button>
+                    <p style="font-size:12px; color:gray;">*Use "Half Area" if STL is a solid block representing a thin part.</p>
+                </div>
+            </div>
+        </div>
 
         <!-- 1. Project Configuration -->
         <div class="card config-card">
@@ -272,8 +242,6 @@
             <div class="section-title">2. Add New Component</div>
             
             <div class="grid-layout">
-                
-                <!-- Step 2: Device Type & Component -->
                 <div class="col-span-2">
                     <label>Device Type</label>
                     <select id="deviceType" onchange="updateComponentOptions()">
@@ -287,15 +255,13 @@
                         <!-- Populated by JS -->
                     </select>
                 </div>
-                
                 <div class="col-span-4">
                     <label>Specific Element Name (Optional)</label>
                     <input type="text" id="compName" placeholder="e.g., Mainplane, Flap 2, Mounting Bracket" />
                 </div>
 
-                <!-- Step 4: Skin Config -->
-                <div class="section-subtitle">Skin Configuration</div>
-                
+                <!-- Skin Config -->
+                <div class="section-subtitle">Skin Configuration (Fibre & Resin)</div>
                 <div class="col-span-2">
                     <label>Fibre Material</label>
                     <select id="fibreType">
@@ -310,45 +276,40 @@
                         <option value="POLYESTER">Polyester</option>
                     </select>
                 </div>
-                
                 <div class="col-span-2">
-                    <label>Total Area (One Face)</label>
+                    <label>Area (One Face)</label>
                     <div class="combined-input-box">
                         <input type="number" id="compArea" placeholder="0.00" step="0.01" />
                         <span class="unit-text">m²</span>
                     </div>
                 </div>
                 <div class="col-span-2">
-                    <label>Number of Plies</label>
+                    <label>Amount of Plies</label>
                     <div class="combined-input-box">
                         <input type="number" id="numPlies" placeholder="0" />
                         <span class="unit-text">Plies</span>
                     </div>
                 </div>
 
-                <!-- Step 6: Core Material (Conditional) -->
+                <!-- Core Material -->
                 <div id="sectionCore" class="grid-layout col-span-4 conditional-section">
                     <div class="section-subtitle">Sandwich Core Configuration</div>
                     <div class="col-span-4">
-                        <label>Core Material</label>
-                        <select id="coreType">
-                            <!-- Populated by JS -->
-                        </select>
-                        <p style="font-size:12px; color:gray; margin-top:4px;">Core area is assumed equal to Component Area.</p>
+                        <label>Core Material Selection</label>
+                        <select id="coreType"></select>
+                        <p style="font-size:12px; color:gray; margin-top:4px;">Appears for Seats, Floors, and Endplates.</p>
                     </div>
                 </div>
 
-                <!-- Step 7: Support Structure (Conditional) -->
+                <!-- Support Structure -->
                 <div id="sectionStructure" class="grid-layout col-span-4 conditional-section">
                     <div class="section-subtitle">Internal Support Structure</div>
-                    
-                    <!-- Carbon Tube -->
                     <div class="col-span-2">
-                        <label>Carbon Tube Specs</label>
+                        <label>Carbon Tube Thickness/Specs</label>
                         <select id="tubeSpecs">
-                            <option value="SMALL">Small (10-15mm OD) - €15/m</option>
-                            <option value="MEDIUM">Medium (20-25mm OD) - €35/m</option>
-                            <option value="LARGE">Large (30mm+ OD) - €50/m</option>
+                            <option value="SMALL">Small (10-15mm OD, 1mm wall) - €15/m</option>
+                            <option value="MEDIUM">Medium (20-25mm OD, 1.5mm wall) - €35/m</option>
+                            <option value="LARGE">Large (30mm+ OD, 2mm wall) - €50/m</option>
                         </select>
                     </div>
                     <div class="col-span-2">
@@ -358,10 +319,8 @@
                             <span class="unit-text">m</span>
                         </div>
                     </div>
-
-                    <!-- Aluminum Ribs -->
                     <div class="col-span-2">
-                        <label>Aluminum Ribs (Amount)</label>
+                        <label>Aluminum Ribs/Spar (Amount)</label>
                         <div class="combined-input-box">
                             <input type="number" id="ribAmount" value="0" placeholder="Count" />
                             <span class="unit-text">Ribs</span>
@@ -388,7 +347,6 @@
                 <div class="section-title" style="margin-bottom:0; border:none;">3. Bill of Materials</div>
                 <button onclick="exportToCSV()" class="btn-secondary">Export CSV</button>
             </div>
-            
             <div class="component-list-container">
                 <table class="results-table">
                     <thead>
@@ -406,7 +364,6 @@
                     <tbody id="componentList"></tbody>
                 </table>
             </div>
-
             <div id="totalsPanel">
                 <div><span>Total Fabric Area</span><span id="totalArea">0.00 m²</span></div>
                 <div><span>Total Resin Volume</span><span id="totalResin">0.00 L</span></div>
@@ -417,6 +374,186 @@
         </div>
     </div>
 
+    <!-- Three.js & Logic -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+
+        // --- 3D Viewer Variables ---
+        let scene, camera, renderer, controls, mesh;
+        let calculatedAreaM2 = 0;
+
+        function init3D() {
+            const container = document.getElementById('stl-viewer');
+            
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a1a);
+            scene.add(new THREE.GridHelper(1000, 20, 0x444444, 0x222222));
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+            dirLight.position.set(10, 20, 10);
+            scene.add(dirLight);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 5000);
+            camera.position.set(200, 200, 200);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            // Controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+
+            // Window Resize
+            window.addEventListener('resize', onWindowResize);
+            animate();
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('stl-viewer');
+            if (!container || !camera || !renderer) return;
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (controls) controls.update();
+            if (renderer && scene && camera) renderer.render(scene, camera);
+        }
+
+        // STL Logic
+        document.getElementById('stlInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (!scene) init3D(); // Init if not already done
+
+            const loader = new STLLoader();
+            const reader = new FileReader();
+
+            document.getElementById('stl-loading').style.display = 'block';
+            document.getElementById('stl-results').style.display = 'none';
+
+            reader.onload = function(event) {
+                const contents = event.target.result;
+                const geometry = loader.parse(contents);
+                
+                // Clear previous
+                if (mesh) {
+                    scene.remove(mesh);
+                    mesh.geometry.dispose();
+                    mesh.material.dispose();
+                }
+
+                // Material
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: 0x8B6D4C, 
+                    specular: 0x111111, 
+                    shininess: 50,
+                    side: THREE.DoubleSide 
+                });
+                
+                mesh = new THREE.Mesh(geometry, material);
+                
+                // Center and Scale
+                geometry.computeBoundingBox();
+                const center = geometry.boundingBox.getCenter(new THREE.Vector3());
+                mesh.position.sub(center); // Center mesh
+                
+                // Fit Camera
+                const size = geometry.boundingBox.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z);
+                camera.position.set(maxDim * 1.5, maxDim * 1.5, maxDim * 1.5);
+                camera.lookAt(0,0,0);
+
+                scene.add(mesh);
+                document.getElementById('stl-loading').style.display = 'none';
+                document.getElementById('stl-results').style.display = 'block';
+                document.getElementById('resetViewBtn').style.display = 'inline-block';
+
+                // Calculations
+                calculateGeometryData(geometry);
+            };
+
+            reader.readAsArrayBuffer(file);
+        });
+
+        function calculateGeometryData(geometry) {
+            // 1. Surface Area
+            // If index exists, simple. If not, iterate position attribute.
+            let area = 0;
+            // Three.js utils usually needed, but simple loop works for triangles
+            const pos = geometry.attributes.position;
+            const pA = new THREE.Vector3(), pB = new THREE.Vector3(), pC = new THREE.Vector3();
+            const cb = new THREE.Vector3(), ab = new THREE.Vector3();
+
+            for (let i = 0; i < pos.count; i += 3) {
+                pA.fromBufferAttribute(pos, i);
+                pB.fromBufferAttribute(pos, i + 1);
+                pC.fromBufferAttribute(pos, i + 2);
+                
+                cb.subVectors(pC, pB);
+                ab.subVectors(pA, pB);
+                cb.cross(ab);
+                area += 0.5 * cb.length();
+            }
+
+            // Units are likely mm^2 if exported from CAD. Convert to m^2
+            // Area in mm^2 / 1,000,000 = m^2
+            calculatedAreaM2 = area / 1000000;
+            
+            // 2. Volume (Signed Volume of tetrahedrons)
+            let volume = 0;
+            for (let i = 0; i < pos.count; i += 3) {
+                pA.fromBufferAttribute(pos, i);
+                pB.fromBufferAttribute(pos, i + 1);
+                pC.fromBufferAttribute(pos, i + 2);
+                // Signed volume of tetrahedron
+                volume += pA.dot(pB.cross(pC)) / 6.0;
+            }
+            // Abs volume
+            volume = Math.abs(volume);
+            const volCm3 = volume / 1000; // mm^3 to cm^3
+
+            // 3. Est Thickness = Volume / (Area/2) (assuming closed thin shell)
+            // (Volume mm3) / (Area mm2 * 0.5) = mm
+            const thickness = (area > 0) ? (volume / (area * 0.5)) : 0;
+
+            // UI Update
+            document.getElementById('stlArea').textContent = calculatedAreaM2.toFixed(4) + " m²";
+            document.getElementById('stlVol').textContent = volCm3.toFixed(2) + " cm³";
+            document.getElementById('stlThick').textContent = thickness.toFixed(2) + " mm";
+        }
+
+        // Expose function to window so standard HTML button can call it
+        window.applyStlArea = function(factor) {
+            const area = calculatedAreaM2 * factor;
+            document.getElementById('compArea').value = area.toFixed(4);
+            // Scroll down nicely
+            document.querySelector('.input-card').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        document.getElementById('resetViewBtn').addEventListener('click', () => {
+            if(mesh && camera) {
+                const size = mesh.geometry.boundingBox.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z);
+                camera.position.set(maxDim * 1.5, maxDim * 1.5, maxDim * 1.5);
+                camera.lookAt(0,0,0);
+            }
+        });
+
+    </script>
+
+    <!-- Main Estimator Logic -->
     <script>
         // --- Data ---
         const FIBRE_DATA = {
@@ -426,7 +563,8 @@
             'GF_WOVEN_200': { mat: 'Fiberglass', weave: 'Woven (200gsm)', thickness: 0.20, Wa: 200, rho_fibre: 2550, Wstd: 1.25, Pmat_easy: 4.00, Pmat_andreou: 4.50, suppliers: ['easy', 'andreou'] },
             'GF_BIX_600': { mat: 'Fiberglass', weave: 'Biaxial (600gsm)', thickness: 0.60, Wa: 600, rho_fibre: 2550, Wstd: 1.25, Pmat_easy: 7.00, Pmat_andreou: 7.50, suppliers: ['easy', 'andreou'] },
             'KV_WOVEN_170': { mat: 'Kevlar', weave: 'Woven (170gsm)', thickness: 0.25, Wa: 170, rho_fibre: 1440, Wstd: 1.00, Pmat_easy: 35.00, Pmat_andreou: 36.00, suppliers: ['easy', 'andreou'] },
-            // Easy Only
+            'CF_TRIAX_750': { mat: 'Carbon Fiber', weave: 'Triaxial (750gsm)', thickness: 0.75, Wa: 750, rho_fibre: 1800, Wstd: 1.27, Pmat_easy: 55.00, Pmat_andreou: null, suppliers: ['easy'] },
+            'GF_TRIAX_750': { mat: 'Fiberglass', weave: 'Triaxial (750gsm)', thickness: 0.80, Wa: 750, rho_fibre: 2550, Wstd: 1.27, Pmat_easy: 12.00, Pmat_andreou: 14.00, suppliers: ['easy', 'andreou'] },
             'CF_LIGHT_100': { mat: 'Carbon Fiber', weave: 'Light (100gsm)', thickness: 0.12, Wa: 100, rho_fibre: 1800, Wstd: 1.00, Pmat_easy: 22.00, Pmat_andreou: null, suppliers: ['easy'] },
             'HYB_CK_3K': { mat: 'Hybrid', weave: 'C/K Twill', thickness: 0.25, Wa: 200, rho_fibre: 1620, Wstd: 1.00, Pmat_easy: 40.00, Pmat_andreou: null, suppliers: ['easy'] }
         };
@@ -440,20 +578,20 @@
         const CORE_DATA = {
             'NONE': { name: 'None', Pcore_easy: 0, Pcore_andreou: 0 },
             'PVC_5MM': { name: 'PVC Foam (5mm)', Pcore_easy: 15.00, Pcore_andreou: 18.00 },
+            'PVC_10MM': { name: 'PVC Foam (10mm)', Pcore_easy: 25.00, Pcore_andreou: 28.00 },
             'NOMEX_3MM': { name: 'Nomex Honeycomb (3mm)', Pcore_easy: 45.00, Pcore_andreou: 50.00 },
             'ALU_10MM': { name: 'Alu Honeycomb (10mm)', Pcore_easy: 40.00, Pcore_andreou: 42.00 }
         };
 
         const TUBE_PRICES = { 'SMALL': 15.00, 'MEDIUM': 35.00, 'LARGE': 50.00 };
-        const RIB_PRICE_PER_M = 8.00; // Aluminum sheet/profile cost estimate
+        const RIB_PRICE_PER_M = 8.00;
 
         let components = [];
 
         // --- Logic ---
-
         function updateProjectConfiguration() {
             updateVfNote();
-            updateComponentOptions(); // Refresh component list based on potential resets? No, just re-render inputs
+            updateComponentOptions();
             populateFibreOptions();
             populateCoreOptions();
             renderComponents();
@@ -462,63 +600,39 @@
         function updateVfNote() {
             const process = document.getElementById('processType').value;
             const note = document.getElementById('vf-note');
-            note.textContent = process === 'vacuum' 
-                ? "Target Vf: 0.55 (Vacuum/Infusion)" 
-                : "Target Vf: 0.45 (Hand Lay-up)";
+            note.textContent = process === 'vacuum' ? "Target Vf: 0.55 (Vacuum/Infusion)" : "Target Vf: 0.45 (Hand Lay-up)";
         }
 
         function updateComponentOptions() {
             const device = document.getElementById('deviceType').value;
             const select = document.getElementById('compCategory');
             select.innerHTML = "";
-
-            const aeroOptions = ["Front Wing", "Rear Wing", "Sidepods", "Floor", "Bodywork", "Wing Endplate","Diffuser"];
+            const aeroOptions = ["Front Wing", "Rear Wing", "Sidepods", "Floor", "Bodywork", "Wing Endplate", "Diffuser"];
             const miscOptions = ["Driver Seat", "Electronics Box", "Steering Wheel", "Other"];
-
             const options = device === 'aero' ? aeroOptions : miscOptions;
-            
             options.forEach(opt => {
                 const el = document.createElement('option');
-                el.value = opt;
-                el.textContent = opt;
-                select.appendChild(el);
+                el.value = opt; el.textContent = opt; select.appendChild(el);
             });
-            
-            // Trigger visibility check immediately after changing options
             updateConditionalSections();
         }
 
         function updateConditionalSections() {
             const category = document.getElementById('compCategory').value;
-            
             const coreSection = document.getElementById('sectionCore');
             const structSection = document.getElementById('sectionStructure');
 
-            // Logic: Endplates, Seat, Floor -> Show Core
             const needsCore = ["Wing Endplate", "Driver Seat", "Floor"].includes(category);
-            if (needsCore) {
-                coreSection.classList.add('active');
-            } else {
-                coreSection.classList.remove('active');
-                document.getElementById('coreType').value = 'NONE'; // Reset if hidden
-            }
+            if (needsCore) coreSection.classList.add('active'); else { coreSection.classList.remove('active'); document.getElementById('coreType').value = 'NONE'; }
 
-            // Logic: Wings -> Show Structure
             const needsStruct = ["Front Wing", "Rear Wing"].includes(category);
-            if (needsStruct) {
-                structSection.classList.add('active');
-            } else {
-                structSection.classList.remove('active');
-                document.getElementById('tubeLength').value = 0; // Reset
-                document.getElementById('ribAmount').value = 0; // Reset
-            }
+            if (needsStruct) structSection.classList.add('active'); else { structSection.classList.remove('active'); document.getElementById('tubeLength').value = 0; document.getElementById('ribAmount').value = 0; }
         }
 
         function populateFibreOptions() {
             const supplier = document.getElementById('supplierSelect').value;
             const select = document.getElementById('fibreType');
             select.innerHTML = "";
-            
             for (const key in FIBRE_DATA) {
                 if (FIBRE_DATA[key].suppliers.includes(supplier)) {
                     const opt = document.createElement('option');
@@ -535,9 +649,7 @@
             select.innerHTML = "";
             for (const key in CORE_DATA) {
                 const opt = document.createElement('option');
-                opt.value = key;
-                opt.textContent = CORE_DATA[key].name;
-                select.appendChild(opt);
+                opt.value = key; opt.textContent = CORE_DATA[key].name; select.appendChild(opt);
             }
             select.value = current && CORE_DATA[current] ? current : 'NONE';
         }
@@ -549,27 +661,22 @@
             const supplier = document.getElementById('supplierSelect').value;
             const wasteMult = 1 + (comp.waste / 100);
 
-            // Prices
             const Pmat = F[`Pmat_${supplier}`];
             const Presin = R[`P_resin_${supplier}`];
             const Pcore = C[`Pcore_${supplier}`];
 
-            // Composite Calcs
             const Vf = comp.process === 'vacuum' ? R.Vf_vac : R.Vf_hand;
             const fabricArea = comp.area * comp.plies * wasteMult;
             const costFabric = fabricArea * Pmat;
 
-            // Resin Calcs
             const fabricWeightKg = fabricArea * (F.Wa / 1000);
             const resinToFibreRatio = ((1 - Vf) / Vf) * (R.rho_res / F.rho_fibre);
             const resinWeight = fabricWeightKg * resinToFibreRatio;
             const resinVol = resinWeight / (R.rho_res / 1000);
             const costResin = resinWeight * Presin;
 
-            // Core Cost
             const costCore = comp.area * Pcore;
 
-            // Structure Cost
             const tubePrice = TUBE_PRICES[comp.tubeSpecs] || 0;
             const costTube = comp.tubeLength * tubePrice;
             const totalRibLength = comp.ribAmount * comp.ribLength;
@@ -577,13 +684,7 @@
             const costStruct = costTube + costRibs;
 
             return {
-                ...comp,
-                fabricArea,
-                costFabric,
-                costResin,
-                resinVol,
-                costCore,
-                costStruct,
+                ...comp, fabricArea, costFabric, costResin, resinVol, costCore, costStruct,
                 totalCost: costFabric + costResin + costCore + costStruct,
                 totalThickness: comp.plies * F.thickness
             };
@@ -621,7 +722,6 @@
             components.push(inputs);
             renderComponents();
             
-            // Soft Reset
             document.getElementById('compName').value = '';
             document.getElementById('compArea').value = '';
             document.getElementById('numPlies').value = '';
@@ -635,28 +735,16 @@
         function renderComponents() {
             const list = document.getElementById('componentList');
             list.innerHTML = "";
-            
             let tArea = 0, tResin = 0, tStruct = 0, tGrand = 0;
 
             components.forEach(raw => {
                 const c = calculateCosts(raw);
-                tArea += c.fabricArea;
-                tResin += c.resinVol;
-                tStruct += c.costStruct;
-                tGrand += c.totalCost;
-
+                tArea += c.fabricArea; tResin += c.resinVol; tStruct += c.costStruct; tGrand += c.totalCost;
                 const F = FIBRE_DATA[c.fibreType];
-                
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>
-                        <div style="font-weight:700">${c.category}</div>
-                        <div style="font-size:12px; color:#666">${c.name}</div>
-                    </td>
-                    <td>
-                        <div>${F.weave}</div>
-                        <div style="font-size:11px; color:#666">${c.plies} plies (${c.totalThickness.toFixed(1)}mm)</div>
-                    </td>
+                    <td><div style="font-weight:700">${c.category}</div><div style="font-size:12px; color:#666">${c.name}</div></td>
+                    <td><div>${F.weave}</div><div style="font-size:11px; color:#666">${c.plies} plies (${c.totalThickness.toFixed(1)}mm)</div></td>
                     <td class="text-right">${c.fabricArea.toFixed(2)} m²</td>
                     <td class="text-right">${c.resinVol.toFixed(2)} L</td>
                     <td class="text-right">€${c.costCore.toFixed(2)}</td>
@@ -675,13 +763,11 @@
 
         function exportToCSV() {
             if(!components.length) return alert("No data");
-            
             let csv = "Category,Name,Fibre,Plies,Area,Resin Vol,Core Cost,Struct Cost,Total Cost\n";
             components.forEach(raw => {
                 const c = calculateCosts(raw);
                 csv += `${c.category},${c.name},${FIBRE_DATA[c.fibreType].mat},${c.plies},${c.area},${c.resinVol.toFixed(2)},${c.costCore.toFixed(2)},${c.costStruct.toFixed(2)},${c.totalCost.toFixed(2)}\n`;
             });
-            
             const blob = new Blob([csv], {type: 'text/csv'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -689,7 +775,6 @@
             a.click();
         }
 
-        // Init
         window.onload = () => {
             updateProjectConfiguration();
             updateComponentOptions();
